@@ -2,23 +2,16 @@ package main
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
-type User struct {
-	name string
-	id   int
-}
-
-func (u User) sayName() {
-	fmt.Printf("hello %s\n", u.name)
-}
-
 func main() {
-
-	user := User{
-		name: "jakub",
-		id:   1,
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		fmt.Println("error")
 	}
-
-	User.sayName(user)
+	b := os.Getenv("PASSWORD")
+	fmt.Print(b)
 }
