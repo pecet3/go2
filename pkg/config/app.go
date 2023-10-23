@@ -28,12 +28,13 @@ func Connect() {
 	if err != nil {
 		panic(err.Error())
 	}
-	db = d
 
-	err = db.Ping()
+	err = d.Ping()
 	if err != nil {
 		panic(err.Error())
 	}
+
+	db = d
 
 }
 

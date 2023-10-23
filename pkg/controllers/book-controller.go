@@ -12,8 +12,13 @@ import (
 var NewBook models.Book
 
 func GetBook(w http.ResponseWriter, r *http.Request) {
-	fmt.Print("start")
-	newBooks := models.GetAllBooks()
+
+	newBooks, err := models.GetAllBooks()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println("Error during cfetching the books")
+		return
+	}
 	res, _ := json.Marshal(newBooks)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -41,9 +46,15 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 func CreateBook(w http.ResponseWriter, r *http.Request) {
 	book := &models.Book{}
 	utils.ParseBody(r, book)
-	b := book.CreateBook()
+	b, err := book.CreateBook()
+	if err != nil {
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println("Error during creating a book")
+		return
+	}
 	res, _ := json.Marshal(b)
-	w.Header().Set("Content-Type", "pkglication/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
