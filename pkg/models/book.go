@@ -1,55 +1,74 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/pecet3/go2/pkg/config"
 )
 
-var db *gorm.DB
+var db *sql.DB
 
 type Book struct {
-	gorm.Model
-	Name        string `gorm:"" json:"name"`
+	Name        string `json:"name"`
 	Author      string `json:"author"`
 	Publication string `json:"publication"`
 }
 
-func initial() {
-	fmt.Println("intilal")
+func Initial() {
+
 	config.Connect()
-	fmt.Println("intilal")
+	
+}
 	db = config.GetDB()
+
 	if db == nil {
 		fmt.Print("errrrrrrr")
 	}
-	fmt.Println("intilal")
-	db.AutoMigrate(&Book{})
-	fmt.Println("intilal")
-}
+
+	
 
 func (b *Book) CreateBook() *Book {
-	db.NewRecord(b)
-	db.Create(&b)
+
 	return b
 }
-
 func GetAllBooks() []Book {
+	config.Connect()
+	defer db.Close()
 	var Books []Book
-	// db.Find(&Books)
+	rows, err := db.Query("SELECT * FROM books")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var book Book
+		var id int
+		err = rows.Scan(&id, &book.Name, &book.Author, &book.Publication)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		Books = append(Books, book)
+
+		fmt.Printf("ID: %d, Name: %s, Author: %s, Publication: %s\n", book.Name, book.Author, book.Publication)
+	}
+
+	if err := rows.Err(); err != nil {
+		panic(err.Error())
+	}
 	return Books
 }
 
-func GetBookById(Id int64) (*Book, *gorm.DB) {
+func GetBookById(Id int64) (*Book, *sql.DB) {
 	var getBook Book
-	db := db.Where("ID=?", Id).Find(&getBook)
 
 	return &getBook, db
 }
 
 func DeleteBookById(Id int64) Book {
 	var book Book
-	db.Where("ID=?", Id).Delete(book)
+
 	return book
 }
