@@ -1,39 +1,43 @@
 package config
 
 import (
+	"database/sql"
 	"fmt"
+	"os"
+
 	"log"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/joho/godotenv"
 )
 
-func initial() {
+var (
+	db *sql.DB
+)
+
+func Connect() {
 	err := godotenv.Load("../../.env")
 	if err != nil {
 		log.Println("error")
 	}
 
-}
+	pass := os.Getenv("DB_PASSWORD")
 
-var (
-	db *gorm.DB
-)
-
-func Connect() {
-	dbPassword := ""
-	dsn := "user:" + dbPassword + "@tcp(jakubpacewi.cz:3306)/db1?charset=utf8mb4&parseTime=True&loc=Local"
-	d, err := gorm.Open("mysql", dsn)
+	d, err := sql.Open("mysql", "user:"+pass+"@tcp(jakubpacewi.cz)/db1")
 	if err != nil {
-		fmt.Printf("Error with db")
+		panic(err.Error())
 	}
-	fmt.Println(d)
 	db = d
 
+	err = db.Ping()
+	if err != nil {
+		panic(err.Error())
+	}
+
 }
 
-func GetDB() *gorm.DB {
+func GetDB() *sql.DB {
 	fmt.Println(db)
 	return db
 }
