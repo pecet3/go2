@@ -15,30 +15,38 @@ type Book struct {
 	Publication string `json:"publication"`
 }
 
-func Initial() {
+func initial() {
 
 	config.Connect()
-	
-}
+
 	db = config.GetDB()
 
 	if db == nil {
-		fmt.Print("errrrrrrr")
+		fmt.Print("error during connect db")
 	}
 
-	
-
-func (b *Book) CreateBook() *Book {
-
-	return b
 }
-func GetAllBooks() []Book {
+
+func (b *Book) CreateBook() (*Book, error) {
+	initial()
+	defer db.Close()
 	config.Connect()
+
+	_, err := db.Exec("INSERT INTO books (name, author, publication) VALUES (?, ?, ?)", b.Name, b.Author, b.Publication)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+
+}
+func GetAllBooks() ([]Book, error) {
+	initial()
 	defer db.Close()
 	var Books []Book
 	rows, err := db.Query("SELECT * FROM books")
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -58,7 +66,7 @@ func GetAllBooks() []Book {
 	if err := rows.Err(); err != nil {
 		panic(err.Error())
 	}
-	return Books
+	return Books, nil
 }
 
 func GetBookById(Id int64) (*Book, *sql.DB) {
