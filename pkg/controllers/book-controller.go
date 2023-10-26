@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/pecet3/go2/pkg/models"
 	"github.com/pecet3/go2/pkg/utils"
 )
@@ -59,21 +61,26 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// func DeleteBook(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-// 	bookId := vars["bookId"]
-// 	Id, err := strconv.ParseInt(bookId, 0, 0)
-// 	if err != nil {
-// 		fmt.Printf("parsing error")
-// 	}
+func DeleteBook(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	bookId := vars["bookId"]
+	Id, err := strconv.ParseInt(bookId, 0, 0)
+	if err != nil {
+		fmt.Println("parsing error")
+	}
 
-// 	book := models.DeleteBookById(Id)
-// 	res, _ := json.Marshal(book)
+	book, err := models.DeleteBookById(Id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println("Error during deleting a book", err)
+		return
+	}
+	res, _ := json.Marshal(book)
 
-// 	w.Header().Set("Content-Type", "pkglication/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	w.Write(res)
-// }
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
 
 // func UpdateBook(w http.ResponseWriter, r *http.Request) {
 // 	var book = &models.Book{}
