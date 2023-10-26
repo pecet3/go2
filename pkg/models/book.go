@@ -29,7 +29,6 @@ func initial() {
 
 func (b *Book) CreateBook() (*Book, error) {
 	initial()
-	defer db.Close()
 	config.Connect()
 
 	_, err := db.Exec("INSERT INTO books (name, author, publication) VALUES (?, ?, ?)", b.Name, b.Author, b.Publication)
@@ -42,7 +41,6 @@ func (b *Book) CreateBook() (*Book, error) {
 }
 func GetAllBooks() ([]Book, error) {
 	initial()
-	defer db.Close()
 	var Books []Book
 	rows, err := db.Query("SELECT * FROM books")
 	if err != nil {
@@ -60,7 +58,7 @@ func GetAllBooks() ([]Book, error) {
 
 		Books = append(Books, book)
 
-		fmt.Printf("ID: %d, Name: %s, Author: %s, Publication: %s\n", book.Name, book.Author, book.Publication)
+		fmt.Printf("ID: %d, Name: %s, Author: %s, Publication: %s\n", id, book.Name, book.Author, book.Publication)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -75,8 +73,29 @@ func GetBookById(Id int64) (*Book, *sql.DB) {
 	return &getBook, db
 }
 
-func DeleteBookById(Id int64) Book {
-	var book Book
+func DeleteBookById(Id int64) (*Book, error) {
+	initial()
 
-	return book
+	var book Book
+	row, err := db.Query("SELECT * FROM books WHERE ID = ?", Id)
+
+	for row.Next() {
+		err = row.Scan(&Id, &book.Name, &book.Author, &book.Publication)
+		if err != nil {
+			fmt.Println("error scaning")
+			return nil, err
+
+		}
+	}
+	if err := row.Err(); err != nil {
+		panic(err.Error())
+	}
+
+	responseDb, err := db.Exec("DELETE FROM books WHERE ID = ?", Id)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(responseDb)
+	return &book, nil
+
 }
