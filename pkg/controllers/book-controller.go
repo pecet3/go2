@@ -39,9 +39,11 @@ func GetBookById(w http.ResponseWriter, r *http.Request) {
 	book, err := models.GetBookById(Id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	if book == nil && err == nil {
 		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	res, _ := json.Marshal(book)
@@ -74,6 +76,8 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	Id, err := strconv.ParseInt(bookId, 0, 0)
 	if err != nil {
 		fmt.Println("parsing error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	book, err := models.DeleteBookById(Id)
@@ -84,6 +88,7 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	}
 	if book == nil && err == nil {
 		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	res, _ := json.Marshal(book)
@@ -95,6 +100,7 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	var book = &models.Book{}
+	fmt.Println(&models.Book{})
 	utils.ParseBody(r, book)
 	vars := mux.Vars(r)
 	bookId := vars["bookId"]
@@ -106,7 +112,12 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 
 	bookDetails, err := models.GetBookById(Id)
 	if err != nil {
-		fmt.Println("Updating error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if bookDetails == nil && err == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	if book.Name == "" {
@@ -118,14 +129,18 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	if book.Publication == "" {
 		book.Publication = bookDetails.Publication
 	}
+
+	book.Id = Id
 	dbBook, err := models.UpdateBookById(book, Id)
 	if err != nil {
-		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	fmt.Println(dbBook)
+
 	res, err := json.Marshal(dbBook)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Conent-Type", "application/json")
