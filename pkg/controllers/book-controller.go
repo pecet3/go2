@@ -131,7 +131,7 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	book.Id = Id
-	dbBook, err := models.UpdateBookById(book, Id)
+	dbBook, err := book.UpdateBookById()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

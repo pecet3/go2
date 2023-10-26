@@ -40,18 +40,17 @@ func (b *Book) CreateBook() (*Book, error) {
 
 }
 
-func UpdateBookById(b *Book, id int64) (*Book, error) {
+func (b *Book) UpdateBookById() (*Book, error) {
 	initial()
 
 	query := "UPDATE books SET name = ?, author = ?, publication = ? WHERE ID = ?"
 
-	_, err := db.Exec(query, b.Name, b.Author, b.Publication, id)
+	_, err := db.Exec(query, b.Name, b.Author, b.Publication, b.Id)
 	if err != nil {
 		return nil, err
 	}
-	book := *b
 
-	return &book, nil
+	return b, nil
 
 }
 
