@@ -2,7 +2,6 @@ package config
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 
 	"log"
@@ -39,6 +38,5 @@ func Connect() {
 }
 
 func GetDB() *sql.DB {
-	fmt.Println(db)
 	return db
 }
