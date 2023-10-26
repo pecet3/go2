@@ -39,10 +39,9 @@ func GetBookById(w http.ResponseWriter, r *http.Request) {
 	book, err := models.GetBookById(Id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-
-		if book == nil {
-			w.WriteHeader(http.StatusNotFound)
-		}
+	}
+	if book == nil && err == nil {
+		w.WriteHeader(http.StatusNotFound)
 	}
 
 	res, _ := json.Marshal(book)
@@ -83,6 +82,10 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error during deleting a book", err)
 		return
 	}
+	if book == nil && err == nil {
+		w.WriteHeader(http.StatusNotFound)
+	}
+
 	res, _ := json.Marshal(book)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -90,31 +93,42 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// func UpdateBook(w http.ResponseWriter, r *http.Request) {
-// 	var book = &models.Book{}
-// 	utils.ParseBody(r, book)
-// 	vars := mux.Vars(r)
-// 	bookId := vars["bookId"]
+func UpdateBook(w http.ResponseWriter, r *http.Request) {
+	var book = &models.Book{}
+	utils.ParseBody(r, book)
+	vars := mux.Vars(r)
+	bookId := vars["bookId"]
 
-// 	Id, err := strconv.ParseInt(bookId, 0, 0)
-// 	if err != nil {
-// 		fmt.Printf("parsing error")
-// 	}
+	Id, err := strconv.ParseInt(bookId, 0, 0)
+	if err != nil {
+		fmt.Printf("parsing error")
+	}
 
-// 	bookDetails, db := models.GetBookById(Id)
+	bookDetails, err := models.GetBookById(Id)
+	if err != nil {
+		fmt.Println("Updating error")
+	}
 
-// 	if book.Name != "" {
-// 		bookDetails.Name = book.Name
-// 	}
-// 	if book.Author != "" {
-// 		bookDetails.Author = book.Name
-// 	}
-// 	if book.Publication != "" {
-// 		bookDetails.Publication = book.Publication
-// 	}
+	if book.Name == "" {
+		book.Name = bookDetails.Name
+	}
+	if book.Author == "" {
+		book.Name = bookDetails.Author
+	}
+	if book.Publication == "" {
+		book.Publication = bookDetails.Publication
+	}
+	dbBook, err := models.UpdateBookById(book, Id)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(dbBook)
+	res, err := json.Marshal(dbBook)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
-// 	res, _ := json.Marshal(bookDetails)
-// 	w.Header().Set("Conent-Type", "pkglication/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	w.Write(res)
-// }
+	w.Header().Set("Conent-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
