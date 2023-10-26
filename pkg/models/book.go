@@ -10,7 +10,7 @@ import (
 var db *sql.DB
 
 type Book struct {
-	Id          int64  `json:"ID"`
+	Id          int64  `json:"Id"`
 	Name        string `json:"name"`
 	Author      string `json:"author"`
 	Publication string `json:"publication"`
@@ -30,7 +30,6 @@ func initial() {
 
 func (b *Book) CreateBook() (*Book, error) {
 	initial()
-	config.Connect()
 
 	_, err := db.Exec("INSERT INTO books (name, author, publication) VALUES (?, ?, ?)", b.Name, b.Author, b.Publication)
 	if err != nil {
@@ -40,6 +39,22 @@ func (b *Book) CreateBook() (*Book, error) {
 	return b, nil
 
 }
+
+func UpdateBookById(b *Book, id int64) (*Book, error) {
+	initial()
+
+	query := "UPDATE books SET name = ?, author = ?, publication = ? WHERE ID = ?"
+
+	_, err := db.Exec(query, b.Name, b.Author, b.Publication, id)
+	if err != nil {
+		return nil, err
+	}
+	book := *b
+
+	return &book, nil
+
+}
+
 func GetAllBooks() ([]Book, error) {
 	initial()
 	var Books []Book
@@ -57,8 +72,6 @@ func GetAllBooks() ([]Book, error) {
 		}
 
 		Books = append(Books, book)
-
-		fmt.Printf("ID: %d, Name: %s, Author: %s, Publication: %s\n", book.Id, book.Name, book.Author, book.Publication)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -86,7 +99,7 @@ func GetBookById(Id int64) (*Book, error) {
 
 	}
 	if isFound == false {
-		return nil, err
+		return nil, nil
 	}
 
 	return &book, nil
@@ -94,16 +107,17 @@ func GetBookById(Id int64) (*Book, error) {
 
 func DeleteBookById(Id int64) (*Book, error) {
 	initial()
-
+	itemsCounter := 0
 	var book Book
 	row, err := db.Query("SELECT * FROM books WHERE ID = ?", Id)
-
 	for row.Next() {
+		itemsCounter++
 		err = row.Scan(&book.Id, &book.Name, &book.Author, &book.Publication)
 		if err != nil {
 			fmt.Println("error scaning")
 			return nil, err
 		}
+
 	}
 	if err := row.Err(); err != nil {
 		panic(err.Error())
@@ -114,6 +128,9 @@ func DeleteBookById(Id int64) (*Book, error) {
 		return nil, err
 	}
 	fmt.Println(responseDb)
+	if itemsCounter == 0 {
+		return nil, nil
+	}
 	return &book, nil
 
 }
