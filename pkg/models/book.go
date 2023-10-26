@@ -10,6 +10,7 @@ import (
 var db *sql.DB
 
 type Book struct {
+	Id          int64  `json:"ID"`
 	Name        string `json:"name"`
 	Author      string `json:"author"`
 	Publication string `json:"publication"`
@@ -50,15 +51,14 @@ func GetAllBooks() ([]Book, error) {
 
 	for rows.Next() {
 		var book Book
-		var id int
-		err = rows.Scan(&id, &book.Name, &book.Author, &book.Publication)
+		err = rows.Scan(&book.Id, &book.Name, &book.Author, &book.Publication)
 		if err != nil {
 			panic(err.Error())
 		}
 
 		Books = append(Books, book)
 
-		fmt.Printf("ID: %d, Name: %s, Author: %s, Publication: %s\n", id, book.Name, book.Author, book.Publication)
+		fmt.Printf("ID: %d, Name: %s, Author: %s, Publication: %s\n", book.Id, book.Name, book.Author, book.Publication)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -67,10 +67,29 @@ func GetAllBooks() ([]Book, error) {
 	return Books, nil
 }
 
-func GetBookById(Id int64) (*Book, *sql.DB) {
-	var getBook Book
+func GetBookById(Id int64) (*Book, error) {
+	isFound := false
+	books, err := GetAllBooks()
+	if err != nil {
+		return nil, err
+	}
 
-	return &getBook, db
+	var book Book
+
+	for b := range books {
+
+		if books[b].Id == Id {
+			book = books[b]
+			isFound = true
+			break
+		}
+
+	}
+	if isFound == false {
+		return nil, err
+	}
+
+	return &book, nil
 }
 
 func DeleteBookById(Id int64) (*Book, error) {
@@ -80,11 +99,10 @@ func DeleteBookById(Id int64) (*Book, error) {
 	row, err := db.Query("SELECT * FROM books WHERE ID = ?", Id)
 
 	for row.Next() {
-		err = row.Scan(&Id, &book.Name, &book.Author, &book.Publication)
+		err = row.Scan(&book.Id, &book.Name, &book.Author, &book.Publication)
 		if err != nil {
 			fmt.Println("error scaning")
 			return nil, err
-
 		}
 	}
 	if err := row.Err(); err != nil {
