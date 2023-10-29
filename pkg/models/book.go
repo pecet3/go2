@@ -125,11 +125,11 @@ func DeleteBookById(Id int64) (*Book, error) {
 		panic(err.Error())
 	}
 
-	responseDb, err := db.Exec("DELETE FROM books WHERE ID = ?", Id)
+	_, err = db.Exec("DELETE FROM books WHERE ID = ?", Id)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(responseDb)
+
 	if itemsCounter == 0 {
 		return nil, nil
 	}
