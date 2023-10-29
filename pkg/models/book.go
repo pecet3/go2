@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"math/rand"
 
 	"github.com/pecet3/go2/pkg/config"
 )
@@ -30,8 +31,10 @@ func initial() {
 
 func (b *Book) CreateBook() (*Book, error) {
 	initial()
+	Id := rand.Int63n(100000)
+	b.Id = Id
+	_, err := db.Exec("INSERT INTO books (id,name, author, publication) VALUES (?,?, ?, ?)", b.Id, b.Name, b.Author, b.Publication)
 
-	_, err := db.Exec("INSERT INTO books (name, author, publication) VALUES (?, ?, ?)", b.Name, b.Author, b.Publication)
 	if err != nil {
 		return nil, err
 	}
